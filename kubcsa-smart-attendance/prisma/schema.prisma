@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../backend/node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+}
+
+enum EventStatus {
+  DRAFT
+  ACTIVE
+  CLOSED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  password     String
+  role         Role     @default(ADMIN)
+  approved     Boolean  @default(false)
+  refreshToken String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Student {
+  id          String       @id @default(cuid())
+  firstName   String
+  secondName  String
+  regNo       String       @unique
+  phoneNumber String       @unique
+  subCounty   String
+  createdAt   DateTime     @default(now())
+  attendance  Attendance[]
+}
+
+model Event {
+  id           String         @id @default(cuid())
+  name         String
+  venueName    String
+  latitude     Float
+  longitude    Float
+  radiusMeters Int
+  startTime    DateTime
+  endTime      DateTime
+  qrCodeValue  String         @unique
+  status       EventStatus     @default(DRAFT)
+  createdAt    DateTime       @default(now())
+  attendance   Attendance[]
+}
+
+model Attendance {
+  id               String   @id @default(cuid())
+  studentId        String
+  eventId          String
+  firstName        String
+  secondName       String
+  regNo            String
+  phoneNumber      String
+  subCounty        String
+  latitude         Float
+  longitude        Float
+  distanceFromVenue Float
+  deviceInfo       String?
+  checkedInAt      DateTime @default(now())
+  student          Student  @relation(fields: [studentId], references: [id], onDelete: Restrict)
+  event            Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([studentId, eventId])
+  @@unique([regNo, eventId])
+  @@unique([phoneNumber, eventId])
+  @@index([eventId, checkedInAt])
+}
