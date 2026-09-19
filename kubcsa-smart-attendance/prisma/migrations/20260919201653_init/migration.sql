@@ -1,44 +1,57 @@
+-- CreateEnum
+CREATE TYPE "Role" AS ENUM ('SUPER_ADMIN', 'ADMIN');
+
+-- CreateEnum
+CREATE TYPE "EventStatus" AS ENUM ('DRAFT', 'ACTIVE', 'CLOSED');
+
 -- CreateTable
 CREATE TABLE "User" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "email" TEXT NOT NULL,
     "password" TEXT NOT NULL,
-    "role" TEXT NOT NULL DEFAULT 'ADMIN',
+    "role" "Role" NOT NULL DEFAULT 'ADMIN',
+    "approved" BOOLEAN NOT NULL DEFAULT false,
     "refreshToken" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Student" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
     "secondName" TEXT NOT NULL,
     "regNo" TEXT NOT NULL,
     "phoneNumber" TEXT NOT NULL,
     "subCounty" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Student_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Event" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "venueName" TEXT NOT NULL,
-    "latitude" REAL NOT NULL,
-    "longitude" REAL NOT NULL,
+    "latitude" DOUBLE PRECISION NOT NULL,
+    "longitude" DOUBLE PRECISION NOT NULL,
     "radiusMeters" INTEGER NOT NULL,
-    "startTime" DATETIME NOT NULL,
-    "endTime" DATETIME NOT NULL,
+    "startTime" TIMESTAMP(3) NOT NULL,
+    "endTime" TIMESTAMP(3) NOT NULL,
     "qrCodeValue" TEXT NOT NULL,
-    "status" TEXT NOT NULL DEFAULT 'DRAFT',
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+    "status" "EventStatus" NOT NULL DEFAULT 'DRAFT',
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Event_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "Attendance" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "studentId" TEXT NOT NULL,
     "eventId" TEXT NOT NULL,
     "firstName" TEXT NOT NULL,
@@ -46,13 +59,13 @@ CREATE TABLE "Attendance" (
     "regNo" TEXT NOT NULL,
     "phoneNumber" TEXT NOT NULL,
     "subCounty" TEXT NOT NULL,
-    "latitude" REAL NOT NULL,
-    "longitude" REAL NOT NULL,
-    "distanceFromVenue" REAL NOT NULL,
+    "latitude" DOUBLE PRECISION NOT NULL,
+    "longitude" DOUBLE PRECISION NOT NULL,
+    "distanceFromVenue" DOUBLE PRECISION NOT NULL,
     "deviceInfo" TEXT,
-    "checkedInAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT "Attendance_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student" ("id") ON DELETE RESTRICT ON UPDATE CASCADE,
-    CONSTRAINT "Attendance_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event" ("id") ON DELETE CASCADE ON UPDATE CASCADE
+    "checkedInAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "Attendance_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -78,3 +91,9 @@ CREATE UNIQUE INDEX "Attendance_regNo_eventId_key" ON "Attendance"("regNo", "eve
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Attendance_phoneNumber_eventId_key" ON "Attendance"("phoneNumber", "eventId");
+
+-- AddForeignKey
+ALTER TABLE "Attendance" ADD CONSTRAINT "Attendance_studentId_fkey" FOREIGN KEY ("studentId") REFERENCES "Student"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Attendance" ADD CONSTRAINT "Attendance_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Event"("id") ON DELETE CASCADE ON UPDATE CASCADE;
